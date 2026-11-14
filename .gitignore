@@ -1,0 +1,20 @@
+# Godot generated files
+.godot/
+.import/
+
+# Exported builds
+builds/
+exports/
+
+# Temporary files
+*.tmp
+*.log
+.DS_Store
+
+# IDE settings
+.vscode/
+.idea/
+
+# OS files
+Thumbs.db
+*.blend1
