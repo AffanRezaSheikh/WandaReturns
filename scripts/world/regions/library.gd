@@ -85,6 +85,7 @@ func build() -> void:
 	portal(Vector3(47, 0, 7), &"glassfen", &"start", Color(0.3, 0.8, 1.0), "Glassfen")
 	portal(Vector3(-47, 0, -7), &"grove", &"start", Color(0.5, 1.0, 0.6), "Hollow Grove")
 	portal(Vector3(-47, 0, 7), &"spire", &"start", Color(0.65, 0.45, 1.0), "Hourglass Spire")
+	portal(Vector3(8.5, 0, 50), &"arena", &"start", Color(1.0, 0.9, 0.4), "Vision Test Arena")
 	spawns[&"start"] = [Vector3(0, 0.5, 46), 0.0]
 	spawns[&"from_leonia"] = [Vector3(0, 0.5, -38), PI]
 	spawns[&"from_cinderwake"] = [Vector3(40, 0.5, -7), PI / 2]
@@ -95,7 +96,7 @@ func build() -> void:
 
 
 func on_enter() -> void:
-	Game.hud.toast("Step through the golden rift to Leonia   ·   T summons training dummies   ·   Tab switches hero", 7.0)
+	Game.hud.toast("Golden rift ahead: Leonia   ·   rift behind you: Vision Test Arena   ·   Tab switches hero   ·   I: 360° view", 8.0)
 
 
 func _platform(pos: Vector3, r: float) -> void:

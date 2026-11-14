@@ -14,7 +14,7 @@ Four more rifts lead to side realms (Hollow Grove, Cinderwake, Glassfen, Hourgla
 |---|---|
 | WASD / mouse | Move / look |
 | Shift, Ctrl | Sprint, dash |
-| Space | Jump; **hold in the air to levitate** (Vision: fly) |
+| Space | Wanda: jump, **hold in the air to levitate**. Vision: **toggle flight** |
 | LMB (hold) | **Hex Bolt**: charges for up to 8 s, stronger the longer you hold, 1 s cooldown |
 | RMB (hold) | **Hex Sphere**: grows while held. On the ground it disarms guns and slows enemies; aimed at one enemy it traps them in a bubble - click to throw |
 | R | Hex Sphere on yourself: a shield |
@@ -23,10 +23,19 @@ Four more rifts lead to side realms (Hollow Grove, Cinderwake, Glassfen, Hourgla
 | M | Town map |
 | Tab | Switch Wanda / Vision (outside missions) |
 | T | Summon training enemies |
-| 1-6 | Jump to a region (outside missions) |
+| 1-7 | Jump to a region (outside missions) |
+| I | 360° character view |
 | Esc, F11 | Free the mouse, fullscreen |
 
-Vision: hold Space to fly, LMB Solar Beam, hold RMB to phase (bullets pass through), E Density Slam.
+Vision: Space toggles flight, hold LMB for the Mind Stone beam, hold RMB to phase (bullets pass through), E Density Slam.
+
+## Vision
+Vision is built on Blender Studio's public-domain (CC0) realistic male base mesh (`tools/blender/base_meshes/`), reshaped to a
+heroic build by `tools/blender/basemesh.py`, then dressed from the owner's turnaround sheet: painted suit, head and cape
+textures (`paint_vision.py`), gauntlets, boots, gold yoke, chest diamond, ear discs and the Mind Stone.
+His cape (and every other cape) moves with spring-bone physics.
+- **Vision Test Arena**: rift behind the Library spawn, or key 7. Space toggles flight, hold left-click for the Mind Stone beam.
+- **360° view**: press I anywhere outside a mission. Mouse orbits, wheel zooms, A/D change pose, Space pauses, Tab switches hero.
 
 ## Story
 Chapter 1 adapts *Vision and the Scarlet Witch* (1985) #1 with newly written dialogue: The Hearing, A Place of Our Own,

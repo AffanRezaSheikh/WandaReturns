@@ -110,6 +110,11 @@ func _draw() -> void:
 		return
 	var w := size.x
 	var h := size.y
+	if Game.inspect:
+		_text(Vector2(40, 60), "360° VIEW  ·  " + String(p.character).to_upper(), 30, GOLD)
+		_text(Vector2(40, 92), "Pose: " + Game.inspect.clip_name().to_upper(), 20, IVORY)
+		_text(Vector2(0, h - 40), "Mouse orbit   ·   Wheel zoom   ·   A / D change pose   ·   Space pause spin   ·   Tab switch hero   ·   I exit", 18, IVORY, HORIZONTAL_ALIGNMENT_CENTER, w)
+		return
 	if _hurt > 0.0:
 		draw_rect(Rect2(Vector2.ZERO, size), Color(0.8, 0.05, 0.1, _hurt * 0.25))
 	var info: Dictionary = p.powers.hud_info()

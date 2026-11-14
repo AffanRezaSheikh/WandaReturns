@@ -50,6 +50,9 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	for n: Node in [_orb, _orb_light, _shield]:               # these hang off the player, not this node
+		if is_instance_valid(n):
+			n.queue_free()
 	if is_instance_valid(_preview) and not _preview.is_inside_tree():
 		_preview.free()
 

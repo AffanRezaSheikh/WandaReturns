@@ -24,6 +24,7 @@ var shield_hp := 0.0
 var invulnerable := false
 var driving: Node3D            # the car she is in, if any
 var rooted := false            # bound in place (story), powers still work
+var inspecting := false        # 360-degree turntable view owns the model
 var cam_pivot: Node3D
 var arm: SpringArm3D
 var cam: Camera3D
@@ -106,6 +107,8 @@ func teleport(pos: Vector3, yaw: float) -> void:
 	cam_pivot.global_position = pos + Vector3(0, 1.5, 0)
 	_update_camera()
 	reset_physics_interpolation()
+	if rig:
+		rig.reset_cloth()
 
 
 func play_once(clip: String, lock: float, speed := 1.0) -> void:
@@ -131,6 +134,9 @@ func _physics_process(delta: float) -> void:
 	_lock -= delta
 	if not _dead and _since_hit > 5.0:
 		hp = minf(max_hp, hp + 6.0 * delta)
+	if inspecting:
+		velocity = Vector3.ZERO
+		return
 	if driving:
 		global_position = driving.global_position + Vector3(0, 0.35, 0)
 		model.rotation.y = driving.rotation.y
@@ -156,7 +162,7 @@ func _physics_process(delta: float) -> void:
 	elif lev and character == &"vision":
 		var fdir := (Basis(Vector3.UP, cam_yaw) * Basis(Vector3.RIGHT, cam_pitch)) * Vector3(iv.x, 0, iv.y)
 		var sp := 22.0 if Input.is_action_pressed(&"sprint") else 12.0
-		velocity = velocity.move_toward(fdir * sp + Vector3(0, 3.0 if iv.length() < 0.1 else 0.0, 0), 40.0 * delta)
+		velocity = velocity.move_toward(fdir * sp + Vector3(0, powers.lift(), 0), 40.0 * delta)
 	else:
 		if lev:
 			top = 6.0
@@ -167,7 +173,7 @@ func _physics_process(delta: float) -> void:
 			velocity.y = move_toward(velocity.y, 2.4, 30.0 * delta)
 		else:
 			velocity.y -= GRAVITY * delta
-		if control and not rooted and is_on_floor() and Input.is_action_just_pressed(&"jump"):
+		if control and not rooted and is_on_floor() and character != &"vision" and Input.is_action_just_pressed(&"jump"):
 			velocity.y = JUMP
 			_since_jump = 0.0
 	move_and_slide()
@@ -190,6 +196,8 @@ func _animate(speed: float, lev: bool) -> void:
 	var o: String = powers.anim_override()
 	if o == "charge":
 		rig.play("charge", 0.15)
+	elif o == "beam" and not lev:
+		rig.play("beam", 0.12)
 	elif o == "cast_hold":
 		if rig.current() != "cast" or rig.anim.current_animation_position < 0.4:
 			rig.play("cast", 0.15)
@@ -254,7 +262,7 @@ func _process(delta: float) -> void:
 func _update_camera() -> void:
 	cam_pivot.rotation = Vector3(0, cam_yaw, 0)
 	arm.rotation.x = cam_pitch
-	arm.spring_length = lerpf(arm.spring_length, 8.5 if driving else 4.6, 0.1)
+	arm.spring_length = lerpf(arm.spring_length, 8.5 if driving else (5.4 if character == &"vision" else 4.6), 0.1)
 	var o := FeelDirector.offset()
 	cam.h_offset = (0.0 if driving else 0.55) + o.x
 	cam.v_offset = o.y

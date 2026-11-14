@@ -5,7 +5,8 @@ const Player := preload("res://scripts/player/player.gd")
 const Hud := preload("res://scripts/ui/hud.gd")
 const Roster := preload("res://scripts/characters/roster.gd")
 const REGION_DIR := "res://scripts/world/regions/"
-const REGIONS: Array[StringName] = [&"library", &"leonia", &"grove", &"cinderwake", &"glassfen", &"spire"]
+const Turntable := preload("res://scripts/ui/turntable.gd")
+const REGIONS: Array[StringName] = [&"library", &"leonia", &"grove", &"cinderwake", &"glassfen", &"spire", &"arena"]
 
 var player: CharacterBody3D
 var hud: Control
@@ -62,7 +63,12 @@ func _on_region_entered(_id: StringName) -> void:
 func _unhandled_input(e: InputEvent) -> void:
 	if e is InputEventKey and e.pressed and not e.echo:
 		var k := (e as InputEventKey).physical_keycode
-		if k >= KEY_1 and k <= KEY_6 and (Game.missions == null or not Game.missions.active):
+		if k == KEY_I:
+			toggle_inspect()
+		elif Game.inspect:
+			if k == KEY_TAB:
+				player.set_character(&"vision" if player.character == &"wanda" else &"wanda")
+		elif k >= KEY_1 and k <= KEY_7 and (Game.missions == null or not Game.missions.active):
 			SceneManager.go_to(REGIONS[k - KEY_1])
 		elif k == KEY_T:                                      # training: summon sparring dead
 			for i in 4:
@@ -75,6 +81,16 @@ func _unhandled_input(e: InputEvent) -> void:
 		elif e.is_action(&"fullscreen"):
 			var w := get_window()
 			w.mode = Window.MODE_WINDOWED if w.mode == Window.MODE_FULLSCREEN else Window.MODE_FULLSCREEN
+
+
+## 360-degree inspection view (I). Not available mid-mission or while driving.
+func toggle_inspect() -> void:
+	if Game.inspect:
+		Game.inspect.close()
+		Game.inspect = null
+	elif (Game.missions == null or not Game.missions.active) and player.driving == null and not SceneManager.busy:
+		Game.inspect = Turntable.new()
+		add_child(Game.inspect)
 
 
 func _snap(name_: String) -> void:
@@ -126,6 +142,34 @@ func _selftest() -> void:
 	for e: Node in Game.enemies():
 		e.take_damage(9999.0)
 	await _wait(0.5)
+	SceneManager.go_to(&"arena", &"start", true)
+	while SceneManager.busy:
+		await get_tree().process_frame
+	await _wait(0.5)
+	var v: Node = player.powers
+	v.set_flying(true)
+	for i in 50:                                              # fly forward and up to stretch the cape
+		player.velocity = Vector3(0, 3, -11)
+		await get_tree().physics_frame
+	await _snap("flight")
+	v.set_flying(false)
+	await _wait(1.5)
+	toggle_inspect()
+	for shot: Array in [["turn_front", 0.0, 3.4], ["turn_side", PI / 2, 3.4], ["turn_back", PI, 3.4], ["turn_face", 0.35, 1.1]]:
+		Game.inspect.spin = false
+		Game.inspect.clip = 0 if shot[0] != "turn_face" else 1
+		Game.inspect.yaw = shot[1]
+		Game.inspect.dist = shot[2]
+		await _wait(0.9)
+		await _snap(shot[0])
+	Game.inspect.clip = 6
+	Game.inspect.yaw = 0.7
+	Game.inspect.dist = 3.4
+	await _wait(0.9)
+	await _snap("turn_beam")
+	toggle_inspect()
+	await _wait(0.3)
+	player.set_character(&"wanda")
 	print("SELFTEST powers ok")
 	SceneManager.go_to(&"leonia", &"start", true)
 	while SceneManager.busy:

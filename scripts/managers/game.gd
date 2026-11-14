@@ -7,6 +7,7 @@ var hud: Control
 var missions: Node
 var time_of_day := 9.0          # hours, persists between regions
 var paused_time := false
+var inspect: Node3D              # the 360-degree turntable, when open
 var autotest := false           # self-test: story plays itself
 
 
