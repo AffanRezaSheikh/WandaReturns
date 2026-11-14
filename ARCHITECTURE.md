@@ -23,6 +23,15 @@ Core fantasy: **you are a reality-bending sorceress and the screen should prove 
 >
 > Regions are built in code (one script each), not hand-placed scenes, so the layout stays easy to regenerate and extend.
 
+> ## STYLE AND STORY UPDATE (14 Nov 2026)
+> Owner's decisions: anime cel-shaded look (Genshin-like), the Library as hub, stylized Leonia NJ as the open world,
+> Chapter 1 = Vision and the Scarlet Witch (1985) #1 with original dialogue, Vision switchable, the owner's own ability spec
+> (Hex Bolt charge, Hex Sphere, Telekinesis ultimate, Levitation). This supersedes the spell list in Section 5.3 and the
+> region story in Section 12; the five older regions stay as side realms.
+> New code: `scripts/characters/` (character_rig, actor, roster), `scripts/combat/` (projectile, fx),
+> `scripts/player/` (player, wanda_powers, vision_powers), `scripts/ui/hud.gd`, `scripts/leonia/` (day_night, car, traffic_car, citizen),
+> `scripts/story/missions.gd`, `scripts/world/regions/{library,leonia}.gd`, `tools/blender/build_characters.py`, autoload `Game`.
+
 > **Instructions to the implementing agent (read first)**
 > This file is the source of truth for structure, conventions, art pipeline and spectacle. Build milestone by milestone (Section 17). Work directly in the workspace, create real files, never ship placeholders as finished. Every milestone must launch, have zero parser errors, and pass `tools/validate_project.sh` and `tools/art/qa_art.py`.
 > **Two non-negotiables: (1) graphics quality consistent with Sections 9–11, (2) spectacle: every region and boss must deliver its signature set piece (Section 12). A competent-but-flat game is a failure. Iterate on visuals by actually viewing rendered previews/screenshots until they look breathtaking.**

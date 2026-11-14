@@ -94,6 +94,7 @@ func build() -> void:
 	B.motes(self, Vector3(0, 9, 0), Vector3(55, 10, 55), Color("ffb060"), 450, 7.0, Vector3(0.15, 0.75, 0.1), 0.09)
 	B.motes(self, Vector3(0, 10, 0), Vector3(55, 10, 55), Color("9a8d9c"), 220, 10.0, Vector3(0.2, -0.3, 0.1), 0.06)
 	portal(at(0, 47), &"grove", &"from_cinderwake")
+	portal(at(-9, 42), &"library", &"from_cinderwake", Color(1.0, 0.7, 0.25), "The Library")
 	portal(at(47, 0), &"glassfen", &"from_cinderwake", Color(0.3, 0.8, 1.0))
 	spawns[&"start"] = [at(0, 40, 0.4), 0.0]
 	spawns[&"from_grove"] = [at(0, 40, 0.4), 0.0]

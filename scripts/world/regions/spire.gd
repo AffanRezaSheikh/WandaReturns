@@ -75,7 +75,7 @@ func build() -> void:
 		spin(s, Vector3(rnd(-1, 1), 1, rnd(-1, 1)), rnd(-0.05, 0.05))
 	B.motes(self, Vector3(0, 16, 0), Vector3(46, 30, 46), Color("ffd070"), 700, 8.0, Vector3(0.05, 1.6, 0.05), 0.09)
 	B.motes(self, Vector3(0, 40, 0), Vector3(280, 150, 280), Color("fff6e6"), 600, 30.0, Vector3(0, 0.02, 0), 1.1, 1.0)   # frozen stars
-	portal(Vector3(5.5, 0, 44.5), &"archive", &"from_spire", Color(1.0, 0.7, 0.25))
+	portal(Vector3(5.5, 0, 44.5), &"library", &"from_spire", Color(1.0, 0.7, 0.25), "The Library")
 	spawns[&"start"] = [Vector3(-2, 0.5, 45), 0.0]
 	spawns[&"from_archive"] = [Vector3(-2, 0.5, 45), 0.0]
 	shots = [[Vector3(7, 5, 58), Vector3(0, 22, 0)], [Vector3(52, 36, 34), Vector3(0, 16, 0)]]

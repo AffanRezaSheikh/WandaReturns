@@ -102,7 +102,7 @@ func setup_env(top: Color, horizon: Color, fog: Color, fog_density: float, ambie
 
 
 ## A chaos rift the player walks into to travel to another region.
-func portal(pos: Vector3, target: StringName, target_spawn: StringName, tint := Color(1.0, 0.15, 0.25)) -> void:
+func portal(pos: Vector3, target: StringName, target_spawn: StringName, tint := Color(1.0, 0.15, 0.25), label := "") -> void:
 	var root := Node3D.new()
 	root.position = pos
 	add_child(root)
@@ -123,6 +123,16 @@ func portal(pos: Vector3, target: StringName, target_spawn: StringName, tint := 
 		shard.rotation = Vector3(rnd(-0.3, 0.3), rnd(0, TAU), rnd(-0.3, 0.3))
 	B.omni(root, Vector3(0, 2.4, 0), Color(tint.r, tint.g, tint.b), 3.0, 12.0)
 	B.motes(root, Vector3(0, 2.5, 0), Vector3(1.6, 2.4, 1.6), Color(tint.r, tint.g, tint.b), 40, 2.0, Vector3(0, 0.8, 0), 0.1)
+	if label != "":
+		var l := Label3D.new()
+		l.text = label
+		l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		l.font_size = 64
+		l.outline_size = 16
+		l.pixel_size = 0.008
+		l.modulate = Color(1.0, 0.92, 0.85)
+		l.position.y = 6.2
+		root.add_child(l)
 	var area := Area3D.new()
 	var cs := CollisionShape3D.new()
 	var s := SphereShape3D.new()
@@ -132,7 +142,7 @@ func portal(pos: Vector3, target: StringName, target_spawn: StringName, tint := 
 	area.add_child(cs)
 	root.add_child(area)
 	area.body_entered.connect(func(body: Node) -> void:
-		if body.is_in_group(&"player"):
+		if body.is_in_group(&"player") and (Game.missions == null or not Game.missions.active):
 			SceneManager.go_to(target, target_spawn))
 
 

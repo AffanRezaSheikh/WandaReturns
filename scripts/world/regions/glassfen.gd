@@ -71,10 +71,10 @@ func build() -> void:
 		B.box(self, Vector3(rnd(6, 16), hh, 1.0), Vector3(cos(a) * r, hh * 0.5 - 2.0, sin(a) * r), mirror, false, Vector3(0, -a + PI / 2 + rnd(-0.4, 0.4), rnd(-0.06, 0.06)))
 	B.motes(self, Vector3(0, 3, 0), Vector3(60, 3.5, 60), Color("c4e4ee"), 420, 8.0, Vector3(0.12, 0.06, 0.1), 0.07, 0.9)
 	portal(Vector3(-47, 0, 0), &"cinderwake", &"from_glassfen")
-	portal(Vector3(30, 0, -54), &"archive", &"from_glassfen", Color(1.0, 0.7, 0.25))
+	portal(Vector3(8, 0, 52), &"library", &"from_glassfen", Color(1.0, 0.7, 0.25), "The Library")
 	spawns[&"start"] = [Vector3(0, 0.4, 46), 0.0]
 	spawns[&"from_cinderwake"] = [Vector3(-40, 0.4, 0), -PI / 2]
-	spawns[&"from_archive"] = [Vector3(26, 0.4, -47), PI]
+	spawns[&"from_archive"] = [Vector3(0, 0.4, 46), 0.0]
 	shots = [[Vector3(3.5, 2.6, 30), LOOM + Vector3(0, 11, 0)], [Vector3(-24, 9, -14), LOOM + Vector3(0, 10, 0)]]
 
 

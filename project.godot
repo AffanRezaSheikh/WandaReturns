@@ -11,6 +11,7 @@ GameState="*res://scripts/managers/game_state.gd"
 InputConfig="*res://scripts/managers/input_config.gd"
 FeelDirector="*res://scripts/managers/feel_director.gd"
 SceneManager="*res://scripts/managers/scene_manager.gd"
+Game="*res://scripts/managers/game.gd"
 
 [display]
 window/size/viewport_width=1600

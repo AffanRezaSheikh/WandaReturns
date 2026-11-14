@@ -1,101 +1,166 @@
-## Main: owns the world host, the player and the UI layer; boots the first region.
+## Main: owns the world host, the player and the UI layer; boots the Library hub.
 extends Node
 
 const Player := preload("res://scripts/player/player.gd")
+const Hud := preload("res://scripts/ui/hud.gd")
+const Roster := preload("res://scripts/characters/roster.gd")
 const REGION_DIR := "res://scripts/world/regions/"
-const REGIONS: Array[StringName] = [&"grove", &"cinderwake", &"glassfen", &"archive", &"spire"]
+const REGIONS: Array[StringName] = [&"library", &"leonia", &"grove", &"cinderwake", &"glassfen", &"spire"]
 
 var player: CharacterBody3D
-var title: Label
-var subtitle: Label
+var hud: Control
 var _shots := false
 
 
 func _ready() -> void:
 	_shots = OS.get_cmdline_user_args().has("--shots")
+	Game.main = self
 	var host := Node3D.new()
 	host.name = "WorldHost"
 	add_child(host)
 	player = Player.new()
-	player.name = "Wanda"
+	player.name = "Player"
+	Game.player = player
 	add_child(player)
 	var ui := CanvasLayer.new()
 	ui.name = "UIRoot"
 	add_child(ui)
-	title = _label(ui, 64, Color("f55a5a"), 0.30)
-	subtitle = _label(ui, 22, Color("f4ead8"), 0.42)
-	var hint := _label(ui, 15, Color("c4b8bd"), 0.955)
-	hint.text = "WASD move   ·   Mouse look   ·   Shift sprint   ·   Space jump   ·   Ctrl dash   ·   1-5 travel   ·   Esc free mouse"
-	hint.visible = not _shots
+	hud = Hud.new()
+	Game.hud = hud
+	ui.add_child(hud)
+	hud.visible = not _shots
 	var fade := ColorRect.new()
 	fade.color = Color(0.05, 0.02, 0.07, 1.0)
-	fade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui.add_child(fade)
 	for id in REGIONS:
-		SceneManager.register_region(id, REGION_DIR + String(id) + ".gd")
+		if ResourceLoader.exists(REGION_DIR + String(id) + ".gd"):
+			SceneManager.register_region(id, REGION_DIR + String(id) + ".gd")
 	SceneManager.setup(host, player, fade)
 	EventBus.region_entered.connect(_on_region_entered)
-	if _shots:
+	if OS.get_cmdline_user_args().has("--selftest"):
+		_selftest()
+	elif _shots:
 		_run_shots()
 	else:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-		SceneManager.go_to(&"grove", &"start", true)
-
-
-func _label(parent: Node, size: int, col: Color, y: float) -> Label:
-	var l := Label.new()
-	var s := LabelSettings.new()
-	s.font_size = size
-	s.font_color = col
-	s.outline_size = maxi(4, size / 6)
-	s.outline_color = Color(0.05, 0.02, 0.07, 0.9)
-	s.shadow_color = Color(0, 0, 0, 0.5)
-	s.shadow_offset = Vector2(0, 3)
-	l.label_settings = s
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.anchor_left = 0.0
-	l.anchor_right = 1.0
-	l.anchor_top = y
-	l.anchor_bottom = y
-	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	parent.add_child(l)
-	return l
+		SceneManager.go_to(&"library", &"start", true)
 
 
 func _on_region_entered(_id: StringName) -> void:
 	var r := SceneManager.current
-	title.text = r.display_name
-	subtitle.text = r.subtitle
-	if _shots:
-		title.modulate.a = 0.0
-		subtitle.modulate.a = 0.0
-		return
-	for l: Label in [title, subtitle]:
-		l.modulate.a = 0.0
-		var t := create_tween()
-		t.tween_interval(0.6)
-		t.tween_property(l, "modulate:a", 1.0, 0.8)
-		t.tween_interval(2.4)
-		t.tween_property(l, "modulate:a", 0.0, 1.2)
+	hud.show_title(r.display_name, r.subtitle)
+	hud.objective = ""
+	hud.marker = null
+	hud.map_data = {}
+	hud.clock_on = false
+	if r.has_method(&"on_enter"):
+		r.on_enter()
 
 
 func _unhandled_input(e: InputEvent) -> void:
 	if e is InputEventKey and e.pressed and not e.echo:
 		var k := (e as InputEventKey).physical_keycode
-		if k >= KEY_1 and k <= KEY_5:
+		if k >= KEY_1 and k <= KEY_6 and (Game.missions == null or not Game.missions.active):
 			SceneManager.go_to(REGIONS[k - KEY_1])
-		elif e.is_action("fullscreen"):
+		elif k == KEY_T:                                      # training: summon sparring dead
+			for i in 4:
+				var f := Basis(Vector3.UP, player.cam_yaw) * Vector3(randf_range(-5, 5), 0.5, -9 - i * 1.5)
+				Roster.spawn(SceneManager.current, &"gunman" if i == 3 else &"zombie", player.global_position + f)
+			hud.toast("Training: the dead rise")
+		elif k == KEY_TAB and (Game.missions == null or not Game.missions.active) and player.driving == null:
+			player.set_character(&"vision" if player.character == &"wanda" else &"wanda")
+			hud.toast("Now playing: " + String(player.character).capitalize())
+		elif e.is_action(&"fullscreen"):
 			var w := get_window()
 			w.mode = Window.MODE_WINDOWED if w.mode == Window.MODE_FULLSCREEN else Window.MODE_FULLSCREEN
 
 
-## Screenshot harness: `godot --path . -- --shots` saves views of every region.
+func _snap(name_: String) -> void:
+	await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png("res://documentation/screens/test_%s.png" % name_)
+
+
+func _wait(t: float) -> void:
+	await get_tree().create_timer(t).timeout
+
+
+## Self-test: `godot --path . -- --selftest` exercises every power and plays
+## Chapter 1 on autopilot, printing SELFTEST OK or the stage it stalled on.
+func _selftest() -> void:
+	Game.autotest = true
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	SceneManager.go_to(&"library", &"start", true)
+	while SceneManager.busy:
+		await get_tree().process_frame
+	var w: Node = player.powers
+	var foes: Array = []
+	for i in 5:
+		foes.append(Roster.spawn(SceneManager.current, &"gunman" if i == 4 else &"zombie", player.global_position + Vector3(-4 + i * 2.0, 0.5, -9)))
+	await _wait(1.0)
+	w.charge = 4.0
+	w._tick_bolt(0.016, true)
+	await _snap("charge")
+	w._fire_bolt(0.6)
+	await _wait(0.6)
+	w._cast_shield()
+	w._start_ult()
+	await _wait(1.2)
+	await _snap("ult")
+	foes[0].throw(Vector3(0, 4, -20), 55.0)
+	foes[1].release()
+	foes[1].charm(true)
+	await _wait(2.0)
+	w.end_ult()
+	foes[2].bubble_on(player)
+	foes[2].throw(Vector3(6, 3, -18), 45.0)
+	foes[4].disarm(3.0)
+	await _wait(1.5)
+	player.set_character(&"vision")
+	await _wait(0.5)
+	player.powers._slam()
+	await _wait(0.5)
+	await _snap("vision")
+	player.set_character(&"wanda")
+	for e: Node in Game.enemies():
+		e.take_damage(9999.0)
+	await _wait(0.5)
+	print("SELFTEST powers ok")
+	SceneManager.go_to(&"leonia", &"start", true)
+	while SceneManager.busy:
+		await get_tree().process_frame
+	var last := -1
+	var t0 := Time.get_ticks_msec()
+	while GameState.get_flag(&"ch1_stage", 0) < 5 and Time.get_ticks_msec() - t0 < 240000:
+		var st: int = GameState.get_flag(&"ch1_stage", 0)
+		if st != last:
+			last = st
+			await _wait(2.5)
+			await _snap("stage%d" % st)
+		await _wait(0.5)
+	await _wait(6.0)
+	await _snap("free_roam")
+	hud.big_map = true
+	await _wait(0.3)
+	await _snap("map")
+	print("SELFTEST %s stage=%d" % ["OK" if GameState.get_flag(&"ch1_stage", 0) == 5 else "STALLED", GameState.get_flag(&"ch1_stage", 0)])
+	get_tree().quit()
+
+
+## Screenshot harness: `godot --path . -- --shots [region ...]` saves views of regions.
 func _run_shots() -> void:
 	var cam := Camera3D.new()
 	cam.fov = 65
+	cam.far = 1500.0
 	add_child(cam)
-	for id in REGIONS:
+	var want: Array = []
+	for a in OS.get_cmdline_user_args():
+		if not a.begins_with("--"):
+			want.append(StringName(a))
+	for id: StringName in SceneManager.order:
+		if not want.is_empty() and not want.has(id):
+			continue
 		SceneManager.go_to(id, &"start", true)
 		while SceneManager.busy:
 			await get_tree().process_frame
@@ -112,16 +177,17 @@ func _run_shots() -> void:
 				await get_tree().process_frame
 			await RenderingServer.frame_post_draw
 			get_viewport().get_texture().get_image().save_png("res://documentation/screens/%s_%d.png" % [id, i])
-		if id == &"grove":                                     # close-ups of Wanda
+		if id == &"library":                                   # close-ups of both heroes
 			for k in 4:
-				var f := Basis(Vector3.UP, player.model.rotation.y + [0.5, 2.6, 0.9, 0.9][k]) * Vector3.FORWARD
-				cam.global_position = player.global_position + f * (1.1 if k == 3 else 2.6) + Vector3(0, 1.65 if k == 3 else 1.25, 0)
-				cam.look_at(player.global_position + Vector3(0, 1.6 if k == 3 else 1.0, 0))
-				player.set_physics_process(k != 2)
+				if k == 2:
+					player.set_character(&"vision")
+				var f2 := Basis(Vector3.UP, player.model.rotation.y + (0.5 if k % 2 == 0 else 0.3)) * Vector3.FORWARD
+				cam.make_current()
+				cam.global_position = player.global_position + f2 * (2.7 if k % 2 == 0 else 1.2) + Vector3(0, 1.3 if k % 2 == 0 else 1.75, 0)
+				cam.look_at(player.global_position + Vector3(0, 1.0 if k % 2 == 0 else 1.7, 0))
 				for fr in 24:
-					if k == 2:
-						player.model.animate(0.016, 7.0, true)
 					await get_tree().process_frame
 				await RenderingServer.frame_post_draw
-				get_viewport().get_texture().get_image().save_png("res://documentation/screens/wanda_%d.png" % k)
+				get_viewport().get_texture().get_image().save_png("res://documentation/screens/hero_%d.png" % k)
+			player.set_character(&"wanda")
 	get_tree().quit()

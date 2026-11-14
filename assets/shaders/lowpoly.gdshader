@@ -15,3 +15,10 @@ void fragment() {
 	METALLIC = metallic;
 	EMISSION = emission * emission_energy;
 }
+
+// Cel-shaded world: three light bands instead of a smooth falloff.
+void light() {
+	float ndl = clamp(dot(NORMAL, LIGHT), 0.0, 1.0);
+	float t = smoothstep(0.0, 0.06, ndl) * 0.5 + smoothstep(0.42, 0.5, ndl) * 0.5;
+	DIFFUSE_LIGHT += t * ATTENUATION * LIGHT_COLOR / PI;
+}
